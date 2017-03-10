@@ -29,7 +29,7 @@
  * 
  */
 
-float constantTurnRate = -0.01;
+float constantTurnTime = 500;
 float pi = 3.141592653589793238;
  
 //Sets motor speeds depending on turnRate and velocity
@@ -45,7 +45,7 @@ void getTurnSpeeds(int *speeds, int turnRate, int velocity, boolean dir){
 
 //Returns how long you need to turn for to get the angle you want depending on the turnRate, maxSpeed and angle
 float getTurnTime(int angle, int maxSpeed, float turnRate){
-  return angle*1000/(turnRate*maxSpeed/500.0);
+  return angle*constantTurnTime/(turnRate*maxSpeed/500.0);
 }
 
 
@@ -103,7 +103,7 @@ void setup()
   Serial.print("Press button for calibration");
   button.waitForButton();
 
-  //Basic calibration
+  //Basic calibration for color sensors
   delay(1000);
   int i;
   for(i = 0; i < 80; i++)
@@ -121,7 +121,44 @@ void setup()
   }
   motors.setSpeeds(0,0);
 
+//Calibration for turning constants
+  delay(1000);
+  int radius = 300;
+
+
+  unsigned int sensors[6];
+  reflectanceSensors.readLine(sensors);
+
+  while(true){
+    //Make sure you see straight out
+    while(sensors[0] > 800 || sensors[8] > 800){
+      reflectanceSensors.readLine(sensors);
+      motors.setSpeeds(-100, 100);
+      delay(10);
+    }
   
+    //rotate pi and run to the end
+    for(int i = 0; i < getTurnTime(pi, velocity, 100); i++){
+      unsigned int speeds[2];
+      getTurnSpeeds(speeds, 100, velocity, true);
+      motors.setSpeeds(speeds[2], speeds[1]);
+      delay(10);
+    }
+    reflectanceSensors.readLine(sensors);
+    while(sensors[0] > 800 && sensors[5] > 800){
+      reflectanceSensors.readLine(sensors);
+      motors.setSpeeds(200, 200);
+      delay(10);
+    }
+    if(sensors[0] < 800 && sensors[5] < 800){
+      break;
+    }else if(sensors[0] < 800){
+      constantTurnTime *= 0.8;
+    }else{
+      constantTurnTime *= 1.2;
+    }
+    
+  }
   
   Serial.print("Press button for fight");
   button.waitForButton();
