@@ -246,6 +246,11 @@ void updateState(int *sensors){
     state = 3;
     cliffhanger = 0;
   }
+  else if(head_Sensor){
+    //enemy ahead, init charge(case4)
+    state = 4;
+    cliffhanger = 0;
+  }
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -257,6 +262,7 @@ void setMotorSpeeds(){
    case 1: case1(speeds); break;
    case 2: case2(speeds); break;
    case 3: case3(speeds); break;
+   case 4: case4(speeds); break;
   }
   //Set motor speed
   motors.setSpeeds(speeds[0], speeds[1]);
@@ -334,7 +340,7 @@ void case2(int *speeds){
 
 //A fowl wind reeks from the east
 void case3(int *speeds){
-  if(cliffhanger < getTurnTime(pi/2, velocity, 70)){
+  if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
   
     getTurnSpeeds(speeds, 70, velocity, false);
   
@@ -342,6 +348,18 @@ void case3(int *speeds){
     state = 0;
     cliffhanger = 0;
   }
+
+ void case4(int *speeds){
+  //Fiende forut: charge!
+  if(cliffhanger){
+    
+    getTurnSpeeds(speeds, 0, velocity * 1.5, true)
+    
+  }else{
+    state = 0;
+    cliffhanger = 0;
+  }
+ }
 }
 
 
