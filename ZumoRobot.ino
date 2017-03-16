@@ -17,6 +17,14 @@
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
 #include <Pushbutton.h>
+#include <SoftwareSerial.h>
+#include <PLabBTSerial.h>
+
+#define txPin 0  // Tx pin on Bluetooth unit
+#define rxPin 1  // Rx pin on Bluetooth unit
+
+
+PLabBTSerial btSerial(txPin, rxPin);
 
 /*
  * 
@@ -49,6 +57,11 @@ float getTurnTime(int angle, int maxSpeed, float turnRate){
   return angle*constantTurnTime/(turnRate*maxSpeed/500.0);
 }
 
+
+void print(String s){
+  Serial.print(s);
+  btSerial.print(s);
+}
 
 /*
  * 
@@ -91,7 +104,8 @@ int velocity;
 void setup()
 {
   Serial.begin(9600);
-  Serial.print("Booting...");
+  btSerial.begin(9600); // Open serial communication to Bluetooth unit  
+  print("Booting...");
   
   reflectanceSensors.init();
 
@@ -103,7 +117,7 @@ void setup()
   //TODO: make a loop for config from processing
   
 
-  Serial.print("Press button for calibration");
+  print("Press button for calibration");
   button.waitForButton();
 
   //Basic calibration for color sensors
@@ -134,7 +148,7 @@ void setup()
 
   while(true){
     //Make sure you see straight out
-    while(sensors[0] > 800 || sensors[8] > 800){
+    while(sensors[0] > 800 || sensors[5] > 800){
       reflectanceSensors.readLine(sensors);
       motors.setSpeeds(-100, 100);
       delay(10);
@@ -154,16 +168,17 @@ void setup()
       delay(10);
     }
     if(sensors[0] < 800 && sensors[5] < 800){
+      motors.setSpeeds(0, 0);
       break;
     }else if(sensors[0] < 800){
-      constantTurnTime *= 0.8;
-    }else{
       constantTurnTime *= 1.2;
+    }else{
+      constantTurnTime *= 0.8;
     }
     
   }
   
-  Serial.print("Press button for fight");
+  print("Press button for fight");
   button.waitForButton();
 
 }
@@ -216,7 +231,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 void updateState(int *sensors){
   //Find state
   
-  if (sensors[0] < 800 && sensors[5] < 800 && state < 1) {
+  if (sensors[0] < 800 && sensors[5] < 800 && state != 1) {
     //at the edge! go backwards!
     state = 1;
     cliffhanger = 0; 
@@ -307,7 +322,7 @@ void case1(int *speeds){
 
 //A fowl wind reeks from the west
 void case2(int *speeds){
-  if(cliffhanger < getTurnTime(pi/2, velocity, 70)){
+  if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
   
     getTurnSpeeds(speeds, 70, velocity, true);
   
