@@ -348,7 +348,7 @@ void case3(int *speeds){
     state = 0;
     cliffhanger = 0;
   }
-
+/*
  void case4(int *speeds){
   //Fiende forut: charge!
   if(cliffhanger){
@@ -360,6 +360,7 @@ void case3(int *speeds){
     cliffhanger = 0;
   }
  }
+ */
 }
 
 
