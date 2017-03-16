@@ -289,7 +289,7 @@ void case0(int *speeds){
   getTurnSpeeds(speeds, 0, velocity, true);
 }
 
-//You encountered a Dragon, please run away! 
+//You have reached the end of the known world, here be monsters! 
 void case1(int *speeds){
   if(cliffhanger < 100){
     
