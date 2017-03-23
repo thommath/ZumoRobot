@@ -17,11 +17,10 @@
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
 #include <Pushbutton.h>
-#include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
 
-#define txPin 0  // Tx pin on Bluetooth unit
-#define rxPin 1  // Rx pin on Bluetooth unit
+#define txPin 2  // Tx pin on Bluetooth unit
+#define rxPin 3  // Rx pin on Bluetooth unit
 
 
 PLabBTSerial btSerial(txPin, rxPin);
@@ -59,8 +58,8 @@ float getTurnTime(int angle, int maxSpeed, float turnRate){
 
 
 void print(String s){
-  Serial.print(s);
-  btSerial.print(s);
+  Serial.println(s);
+  btSerial.println(s);
 }
 
 /*
@@ -104,7 +103,9 @@ int velocity;
 void setup()
 {
   Serial.begin(9600);
+  Serial.flush();
   btSerial.begin(9600); // Open serial communication to Bluetooth unit  
+  btSerial.flush();
   print("Booting...");
   
   reflectanceSensors.init();
@@ -119,6 +120,7 @@ void setup()
 
   print("Press button for calibration");
   button.waitForButton();
+  print("Calibrating");
 
   //Basic calibration for color sensors
   delay(1000);
@@ -178,8 +180,9 @@ void setup()
     
   }
   
-  print("Press button for fight");
+  print("Press button for");
   button.waitForButton();
+  print("Fight!");
 
 }
 
@@ -204,6 +207,8 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 
   //Update state based on sensor data
   updateState(sensors);
+
+  print("state " + String(state));
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
   setMotorSpeeds();
