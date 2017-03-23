@@ -1,3 +1,5 @@
+#include <SpacebrewYun.h>
+
 /*
  * 
  *  _    _ _____ _     _____ ________  ___ _____ _ 
@@ -25,8 +27,8 @@
 #include <PLabBTSerial.h>
 
 
-#define trigPin A4
-#define echoPin A1
+#define trigPin PIN_A4
+#define echoPin PIN_A1
 
 
 //#include "imperial.h"

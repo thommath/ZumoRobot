@@ -16,10 +16,13 @@ void bindPLabBridge (PLabBridge bridge) {
   // We use an anonymous inner class for this
   bridge.subscribeMessages (new PLabRecv() {
     public void receive (String string) {
-      if(string.contains(" ")){
-        state = string;
+//      if(string.contains(" ")){
+//        state = string;
+//      }
+      output.add(string);
+      if(output.size() > 20){
+        output.remove(0);
       }
-//      output.add(string);
 //      textString1 = string;
     }
   });
@@ -42,7 +45,6 @@ void setup() {
   size(300,200);              // Canvas size is 300 x 200 pixels.
   background(128);            // Background color is gray (128,128,128).
   stroke(0);                  // Stroke color is black (0,0,0)
-  output.add("Hello World!");
   output.add("Hello World!");
 }
 
