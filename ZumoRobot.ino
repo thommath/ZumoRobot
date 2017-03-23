@@ -13,6 +13,10 @@
  * 
  */
 
+#define txPin 2  // Tx pin on Bluetooth unit
+#define rxPin 3  // Rx pin on Bluetooth unit
+
+
 #include <QTRSensors.h>
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
@@ -20,14 +24,16 @@
 #include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
 
-#define txPin 0  // Tx pin on Bluetooth unit
-#define rxPin 1  // Rx pin on Bluetooth unit
 
 #define trigPin A4
 #define echoPin A1
 
 
+//#include "imperial.h"
+
 PLabBTSerial btSerial(txPin, rxPin);
+
+
 
 /*
  * 
@@ -41,7 +47,7 @@ PLabBTSerial btSerial(txPin, rxPin);
  * 
  */
 
-float constantTurnTime = 500;
+float constantTurnTime = 1500;
 float pi = 3.141592653589793238;
  
 //Sets motor speeds depending on turnRate and velocity
@@ -83,6 +89,8 @@ ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
+//MUSIC
+//Music music (3);
 
 
 //State! What the f are we doing right now? 
@@ -109,7 +117,8 @@ void setup()
   Serial.begin(9600);
   btSerial.begin(9600); // Open serial communication to Bluetooth unit  
   print("Booting...");
-  
+
+  //music.init();
   reflectanceSensors.init();
 
   //Setting default values
@@ -126,6 +135,7 @@ void setup()
 
   print("Press button for calibration");
   button.waitForButton();
+
 
   //Basic calibration for color sensors
   delay(1000);
@@ -150,6 +160,8 @@ void setup()
   print("\nPress button for fight");
   button.waitForButton();
 
+  print("Fight!");
+
 }
 
 /*
@@ -169,7 +181,10 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 
   //buttSensor kode:
   checkBehind();
-  
+
+  //music.play();
+  //print(music.getStuff());
+
   //Read sensor data
   //0 = left, 5 = right
   unsigned int sensors[6];
@@ -177,6 +192,9 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 
   //Update state based on sensor data
   updateState(sensors);
+
+  print("state " + String(state));
+
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
   setMotorSpeeds();
@@ -312,8 +330,7 @@ void case1(int *speeds){
     
     getTurnSpeeds(speeds, 0, -velocity, true);
   
-  }else if(cliffhanger < 10
-  +getTurnTime(pi, velocity, 100)){
+  }else if(cliffhanger < 10 + getTurnTime(pi, velocity, 100)){
   
     getTurnSpeeds(speeds, 100, velocity, true);
   
@@ -346,11 +363,11 @@ void case3(int *speeds){
     cliffhanger = 0;
   }
 }
-// Enemy behind, take evative action
+// Enemy behind, take evatise action
 void case4(int *speeds){
   if(cliffhanger < 100){
     
-    Serial.println("We're being fucked in our ASSES!");
+    print("We're being fucked in our ASSES!");
     getTurnSpeeds(speeds, 0, 0, false);
     delay(5000);
     state = 0;
