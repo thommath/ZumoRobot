@@ -17,10 +17,14 @@
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
 #include <Pushbutton.h>
+#include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
 
-#define txPin 2  // Tx pin on Bluetooth unit
-#define rxPin 3  // Rx pin on Bluetooth unit
+#define txPin 0  // Tx pin on Bluetooth unit
+#define rxPin 1  // Rx pin on Bluetooth unit
+
+#define trigPin A4
+#define echoPin A1
 
 
 PLabBTSerial btSerial(txPin, rxPin);
@@ -58,8 +62,8 @@ float getTurnTime(int angle, int maxSpeed, float turnRate){
 
 
 void print(String s){
-  Serial.println(s);
-  btSerial.println(s);
+  Serial.print(s);
+  btSerial.print(s);
 }
 
 /*
@@ -103,9 +107,7 @@ int velocity;
 void setup()
 {
   Serial.begin(9600);
-  Serial.flush();
   btSerial.begin(9600); // Open serial communication to Bluetooth unit  
-  btSerial.flush();
   print("Booting...");
   
   reflectanceSensors.init();
@@ -115,12 +117,15 @@ void setup()
   cliffhanger = 0;
   velocity = 200;
 
+  //setup buttSensor
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
   //TODO: make a loop for config from processing
   
 
   print("Press button for calibration");
   button.waitForButton();
-  print("Calibrating");
 
   //Basic calibration for color sensors
   delay(1000);
@@ -142,9 +147,8 @@ void setup()
 
 
   
-  print("Press button for");
+  print("\nPress button for fight");
   button.waitForButton();
-  print("Fight!");
 
 }
 
@@ -162,6 +166,10 @@ void setup()
 
 void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
+
+  //buttSensor kode:
+  checkBehind();
+  
   //Read sensor data
   //0 = left, 5 = right
   unsigned int sensors[6];
@@ -169,8 +177,6 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 
   //Update state based on sensor data
   updateState(sensors);
-
-  print("state " + String(state));
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
   setMotorSpeeds();
@@ -213,11 +219,11 @@ void updateState(int *sensors){
     state = 3;
     cliffhanger = 0;
   }
-  //else if(head_Sensor){
-    //enemy ahead, init charge(case4)
-    //state = 4;
-    //cliffhanger = 0;
-  //}
+  //Check behind
+  else if(checkBehind() == true){
+    state = 4;
+    cliffhanger = 0;
+  }
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -229,13 +235,36 @@ void setMotorSpeeds(){
    case 1: case1(speeds); break;
    case 2: case2(speeds); break;
    case 3: case3(speeds); break;
-   //case 4: case4(speeds); break;
+   case 4: case4(speeds); break;
   }
   //Set motor speed
   motors.setSpeeds(speeds[0], speeds[1]);
 }
 
-
+boolean checkBehind(){
+  float duration, distance;
+  digitalWrite(trigPin, LOW); 
+  delayMicroseconds(2);
+ 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration / 2) * 0.0344;
+  
+  if (distance <= 6){
+    Serial.println("butt=true");
+    return true;
+  }
+  else {
+    //Serial.print("Distance = ");
+    //Serial.print(distance);
+    //Serial.println(" cm");
+    //Serial.println("butt=false");
+    return false;
+  }
+}
 /*
  *  
  *  _____   ___   _____ _____ _____ 
@@ -279,11 +308,12 @@ void case0(int *speeds){
 
 //You have reached the end of the known world, here be monsters! 
 void case1(int *speeds){
-  if(cliffhanger < 100){
+  if(cliffhanger < 10){
     
     getTurnSpeeds(speeds, 0, -velocity, true);
   
-  }else if(cliffhanger < 100+getTurnTime(pi, velocity, 100)){
+  }else if(cliffhanger < 10
+  +getTurnTime(pi, velocity, 100)){
   
     getTurnSpeeds(speeds, 100, velocity, true);
   
@@ -297,7 +327,7 @@ void case1(int *speeds){
 void case2(int *speeds){
   if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
   
-    getTurnSpeeds(speeds, 70, velocity, true);
+    getTurnSpeeds(speeds, 100, velocity, true);
   
   }else{
     state = 0;
@@ -309,25 +339,26 @@ void case2(int *speeds){
 void case3(int *speeds){
   if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
   
-    getTurnSpeeds(speeds, 70, velocity, false);
+    getTurnSpeeds(speeds, 100, velocity, false);
   
   }else{
     state = 0;
     cliffhanger = 0;
   }
-/*
- void case4(int *speeds){
-  //Fiende forut: charge!
-  if(cliffhanger){
+}
+// Enemy behind, take evative action
+void case4(int *speeds){
+  if(cliffhanger < 100){
     
-    getTurnSpeeds(speeds, 0, velocity * 1.5, true)
+    Serial.println("We're being fucked in our ASSES!");
+    getTurnSpeeds(speeds, 0, 0, false);
+    delay(5000);
+    state = 0;
     
   }else{
     state = 0;
     cliffhanger = 0;
   }
- }
- */
 }
 
 
