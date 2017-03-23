@@ -70,8 +70,8 @@ float getTurnTime(int angle, int maxSpeed, float turnRate){
 
 
 void print(String s){
-  Serial.print(s);
-  btSerial.print(s);
+  Serial.println(s);
+  btSerial.println(s);
 }
 
 /*
