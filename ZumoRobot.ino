@@ -138,45 +138,7 @@ void setup()
   }
   motors.setSpeeds(0,0);
 
-//Calibration for turning constants
-  delay(1000);
-  int radius = 300;
 
-
-  unsigned int sensors[6];
-  reflectanceSensors.readLine(sensors);
-
-  while(true){
-    //Make sure you see straight out
-    while(sensors[0] > 800 || sensors[5] > 800){
-      reflectanceSensors.readLine(sensors);
-      motors.setSpeeds(-100, 100);
-      delay(10);
-    }
-  
-    //rotate pi and run to the end
-    for(int i = 0; i < getTurnTime(pi, velocity, 100); i++){
-      unsigned int speeds[2];
-      getTurnSpeeds(speeds, 100, velocity, true);
-      motors.setSpeeds(speeds[2], speeds[1]);
-      delay(10);
-    }
-    reflectanceSensors.readLine(sensors);
-    while(sensors[0] > 800 && sensors[5] > 800){
-      reflectanceSensors.readLine(sensors);
-      motors.setSpeeds(200, 200);
-      delay(10);
-    }
-    if(sensors[0] < 800 && sensors[5] < 800){
-      motors.setSpeeds(0, 0);
-      break;
-    }else if(sensors[0] < 800){
-      constantTurnTime *= 1.2;
-    }else{
-      constantTurnTime *= 0.8;
-    }
-    
-  }
   
   print("Press button for fight");
   button.waitForButton();
@@ -231,7 +193,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 void updateState(int *sensors){
   //Find state
   
-  if (sensors[0] < 800 && sensors[5] < 800 && state != 1) {
+  if (sensors[0] < 800 && sensors[5] < 800) {
     //at the edge! go backwards!
     state = 1;
     cliffhanger = 0; 
@@ -246,11 +208,11 @@ void updateState(int *sensors){
     state = 3;
     cliffhanger = 0;
   }
-  else if(head_Sensor){
+  //else if(head_Sensor){
     //enemy ahead, init charge(case4)
-    state = 4;
-    cliffhanger = 0;
-  }
+    //state = 4;
+    //cliffhanger = 0;
+  //}
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -262,7 +224,7 @@ void setMotorSpeeds(){
    case 1: case1(speeds); break;
    case 2: case2(speeds); break;
    case 3: case3(speeds); break;
-   case 4: case4(speeds); break;
+   //case 4: case4(speeds); break;
   }
   //Set motor speed
   motors.setSpeeds(speeds[0], speeds[1]);
