@@ -140,45 +140,7 @@ void setup()
   }
   motors.setSpeeds(0,0);
 
-//Calibration for turning constants
-  delay(1000);
-  int radius = 300;
 
-
-  unsigned int sensors[6];
-  reflectanceSensors.readLine(sensors);
-
-  while(true){
-    //Make sure you see straight out
-    while(sensors[0] > 800 || sensors[5] > 800){
-      reflectanceSensors.readLine(sensors);
-      motors.setSpeeds(-100, 100);
-      delay(10);
-    }
-  
-    //rotate pi and run to the end
-    for(int i = 0; i < getTurnTime(pi, velocity, 100); i++){
-      unsigned int speeds[2];
-      getTurnSpeeds(speeds, 100, velocity, true);
-      motors.setSpeeds(speeds[2], speeds[1]);
-      delay(10);
-    }
-    reflectanceSensors.readLine(sensors);
-    while(sensors[0] > 800 && sensors[5] > 800){
-      reflectanceSensors.readLine(sensors);
-      motors.setSpeeds(200, 200);
-      delay(10);
-    }
-    if(sensors[0] < 800 && sensors[5] < 800){
-      motors.setSpeeds(0, 0);
-      break;
-    }else if(sensors[0] < 800){
-      constantTurnTime *= 1.2;
-    }else{
-      constantTurnTime *= 0.8;
-    }
-    
-  }
   
   print("Press button for");
   button.waitForButton();
@@ -236,7 +198,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 void updateState(int *sensors){
   //Find state
   
-  if (sensors[0] < 800 && sensors[5] < 800 && state != 1) {
+  if (sensors[0] < 800 && sensors[5] < 800) {
     //at the edge! go backwards!
     state = 1;
     cliffhanger = 0; 
@@ -251,6 +213,11 @@ void updateState(int *sensors){
     state = 3;
     cliffhanger = 0;
   }
+  //else if(head_Sensor){
+    //enemy ahead, init charge(case4)
+    //state = 4;
+    //cliffhanger = 0;
+  //}
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -262,6 +229,7 @@ void setMotorSpeeds(){
    case 1: case1(speeds); break;
    case 2: case2(speeds); break;
    case 3: case3(speeds); break;
+   //case 4: case4(speeds); break;
   }
   //Set motor speed
   motors.setSpeeds(speeds[0], speeds[1]);
@@ -309,7 +277,7 @@ void case0(int *speeds){
   getTurnSpeeds(speeds, 0, velocity, true);
 }
 
-//You encountered a Dragon, please run away! 
+//You have reached the end of the known world, here be monsters! 
 void case1(int *speeds){
   if(cliffhanger < 100){
     
@@ -339,7 +307,7 @@ void case2(int *speeds){
 
 //A fowl wind reeks from the east
 void case3(int *speeds){
-  if(cliffhanger < getTurnTime(pi/2, velocity, 70)){
+  if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
   
     getTurnSpeeds(speeds, 70, velocity, false);
   
@@ -347,6 +315,19 @@ void case3(int *speeds){
     state = 0;
     cliffhanger = 0;
   }
+/*
+ void case4(int *speeds){
+  //Fiende forut: charge!
+  if(cliffhanger){
+    
+    getTurnSpeeds(speeds, 0, velocity * 1.5, true)
+    
+  }else{
+    state = 0;
+    cliffhanger = 0;
+  }
+ }
+ */
 }
 
 
