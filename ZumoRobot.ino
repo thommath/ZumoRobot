@@ -13,17 +13,22 @@
  * 
  */
 
+#define txPin 5  // Tx pin on Bluetooth unit
+#define rxPin 6  // Rx pin on Bluetooth unit
+
+
 #include <QTRSensors.h>
 #include <ZumoReflectanceSensorArray.h>
 #include <ZumoMotors.h>
 #include <Pushbutton.h>
 #include <PLabBTSerial.h>
 
-#define txPin 2  // Tx pin on Bluetooth unit
-#define rxPin 3  // Rx pin on Bluetooth unit
 
+#include "imperial.h"
 
 PLabBTSerial btSerial(txPin, rxPin);
+
+
 
 /*
  * 
@@ -37,7 +42,7 @@ PLabBTSerial btSerial(txPin, rxPin);
  * 
  */
 
-float constantTurnTime = 500;
+float constantTurnTime = 1500;
 float pi = 3.141592653589793238;
  
 //Sets motor speeds depending on turnRate and velocity
@@ -79,6 +84,8 @@ ZumoReflectanceSensorArray reflectanceSensors;
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
+//MUSIC
+Music music (3);
 
 
 //State! What the f are we doing right now? 
@@ -107,9 +114,10 @@ void setup()
   btSerial.begin(9600); // Open serial communication to Bluetooth unit  
   btSerial.flush();
   print("Booting...");
-  
-  reflectanceSensors.init();
 
+  music.init();
+  reflectanceSensors.init();
+/*
   //Setting default values
   state = 0;
   cliffhanger = 0;
@@ -119,7 +127,7 @@ void setup()
   
 
   print("Press button for calibration");
-  button.waitForButton();
+//  button.waitForButton();
   print("Calibrating");
 
   //Basic calibration for color sensors
@@ -145,7 +153,7 @@ void setup()
   print("Press button for");
   button.waitForButton();
   print("Fight!");
-
+*/
 }
 
 /*
@@ -162,6 +170,8 @@ void setup()
 
 void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
+  music.play();
+  print(music.getStuff());
   //Read sensor data
   //0 = left, 5 = right
   unsigned int sensors[6];
@@ -170,7 +180,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   //Update state based on sensor data
   updateState(sensors);
 
-  print("state " + String(state));
+//  print("state " + String(state));
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
   setMotorSpeeds();
