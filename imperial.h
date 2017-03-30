@@ -33,7 +33,7 @@
 // Define a special note, 'R', to represent a rest
 #define  R     0
 
-#define MAX_COUNT 13
+#define MAX_COUNT 18
 
 class Music{
     // MELODY and TIMING  =======================================
@@ -70,10 +70,16 @@ class Music{
       melody[6] = a3s;
       melody[7] = f4;
       melody[8] = d4;
-      melody[9] = f4;
-      melody[10] = f4;
-      melody[11] = f4;
-      melody[12] = f4s;
+      melody[9] = a4;
+      melody[10] = a4;
+      melody[11] = a4;
+      melody[12] = a4s;
+      melody[13] = f4;
+      melody[14] = d4;
+      melody[15] = a3s;
+      melody[16] = f4;
+      melody[17] = d4;
+      
 
       beats[0] = 2;
       beats[1] = 2;
@@ -88,6 +94,13 @@ class Music{
       beats[10] = 2;
       beats[11] = 2;
       beats[12] = 3;
+      beats[13] = 6;
+      beats[14] = 2;
+      beats[15] = 3;
+      beats[16] = 6;
+      beats[17] = 1;
+      
+      
     }
 
 
