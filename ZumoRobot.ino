@@ -16,7 +16,7 @@
  */
 
 #define txPin 6  // Tx pin on Bluetooth unit
-#define rxPin 3  // Rx pin on Bluetooth unit
+#define rxPin 2  // Rx pin on Bluetooth unit
 
 
 #include <QTRSensors.h>
@@ -26,12 +26,11 @@
 #include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
 
-
 #define trigPin PIN_A4
 #define echoPin PIN_A1
 
 
-//#include "imperial.h"
+#include "imperial.h"
 
 PLabBTSerial btSerial(txPin, rxPin);
 
@@ -85,6 +84,7 @@ void print(String s){
  * 
  * 
  */
+ 
 
 //Define sensors
 ZumoReflectanceSensorArray reflectanceSensors;
@@ -92,7 +92,7 @@ ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
 //MUSIC
-//Music music (3);
+Music music (3);
 
 
 //State! What the f are we doing right now? 
@@ -119,8 +119,7 @@ void setup()
   Serial.begin(9600);
   btSerial.begin(9600); // Open serial communication to Bluetooth unit  
   print("Booting...");
-
-  //music.init();
+  music.init();
   reflectanceSensors.init();
 
   //Setting default values
@@ -182,10 +181,10 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
 
   //buttSensor kode:
-  checkBehind();
+//  checkBehind();
 
-  //music.play();
-  //print(music.getStuff());
+  music.play();
+  ///print(music.getStuff());
 
   //Read sensor data
   //0 = left, 5 = right
@@ -261,10 +260,10 @@ void updateState(int *sensors){
     cliffhanger = 0;
   }
   //Check behind
-  else if(checkBehind() == true){
+/*  else if(checkBehind() == true){
     state = 4;
     cliffhanger = 0;
-  }
+  }*/
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -282,30 +281,6 @@ void setMotorSpeeds(){
   motors.setSpeeds(speeds[0], speeds[1]);
 }
 
-boolean checkBehind(){
-  float duration, distance;
-  digitalWrite(trigPin, LOW); 
-  delayMicroseconds(2);
- 
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  
-  duration = pulseIn(echoPin, HIGH);
-  distance = (duration / 2) * 0.0344;
-  
-  if (distance <= 6){
-    Serial.println("butt=true");
-    return true;
-  }
-  else {
-    //Serial.print("Distance = ");
-    //Serial.print(distance);
-    //Serial.println(" cm");
-    //Serial.println("butt=false");
-    return false;
-  }
-}
 /*
  *  
  *  _____   ___   _____ _____ _____ 
@@ -392,7 +367,7 @@ void case4(int *speeds){
     
     print("We're being fucked in our ASSES!");
     getTurnSpeeds(speeds, 0, 0, false);
-    delay(5000);
+//    delay(5000);
     state = 0;
     
   }else{
