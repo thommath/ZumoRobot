@@ -15,7 +15,7 @@
  * 
  */
 
-#define txPin 2  // Tx pin on Bluetooth unit
+#define txPin 6  // Tx pin on Bluetooth unit
 #define rxPin 3  // Rx pin on Bluetooth unit
 
 
