@@ -41,6 +41,10 @@ ArrayList<String> output = new ArrayList<String>();
 
 String state = "";
 
+float speed = 400;
+float angle = 400;
+boolean pressed = false;
+
 void setup() {
   size(300,200);              // Canvas size is 300 x 200 pixels.
   background(128);            // Background color is gray (128,128,128).
@@ -49,19 +53,39 @@ void setup() {
 }
 
 void draw() {    // Called for every frame
-background(0);
+
+  if(pressed){
+    if(mouseX > 200 && mouseX < 250 
+      && mouseY > 50 && mouseY < 351){
+        speed = (mouseY-50)*(500/300);
+    }
+    if(mouseX > 300 && mouseX < 350 
+      && mouseY > 50 && mouseY < 351){
+        angle = (mouseY-50)*(2000/300);
+    }
+  }
+
+  background(0);
 //    btWrite(max(min(mouseY-100, 255), 0) + "");
   for(int n = 0; n < output.size(); n++){
     text(output.get(n), 0, 50+20*n);
   }
   text(state, 100, 100);
+  
+  fill(255);
+  text(speed, 200, 30);
+  rect(200, 50, 50, 300);
+  
+  text(angle, 300, 30);
+  rect(300, 50, 50, 300);
 }
 
 
 void mousePressed() {
-//  pressed = true;
+  pressed = true;
 }
 
 void mouseReleased() {
-//  pressed = false;
+  pressed = false;
+  btWrite(speed + " " + angle + "\n");
 }

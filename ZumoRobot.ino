@@ -71,7 +71,7 @@ float getTurnTime(int angle, int maxSpeed, float turnRate){
 
 void print(String s){
   Serial.println(s);
-  btSerial.print(s);
+  btSerial.println(s);
 }
 
 /*
@@ -195,7 +195,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   //Update state based on sensor data
   updateState(sensors);
 
-  print("state " + String(state));
+//  print("state " + String(state));
 
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
@@ -206,6 +206,27 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   delay(10);
   //Increment the state time counter
   cliffhanger++;
+
+  //Bluetooth recieve
+  int availableCount = btSerial.available();
+  if (availableCount > 0) {
+    char text[availableCount];
+    btSerial.read(text, availableCount); 
+    print(text);
+//    readCommand(text);
+    String in = "";
+    for(int n = 0; n < availableCount; n++){
+      if(text[n] == ' '){
+        velocity = in.toInt();
+        print("Set velocity to " + String(velocity) + " " + in);
+        in = "";
+      }
+      in += text[n];
+    }
+    constantTurnTime = in.toInt();
+    print("Set constantTurnTime to " + String(constantTurnTime));
+  }
+  
 }
 
 /*
