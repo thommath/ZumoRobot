@@ -16,7 +16,7 @@
  */
 
 #define txPin 6  // Tx pin on Bluetooth unit
-#define rxPin 3  // Rx pin on Bluetooth unit
+#define rxPin 2  // Rx pin on Bluetooth unit
 
 
 #include <QTRSensors.h>
@@ -76,6 +76,14 @@ void print(String s){
   btSerial.println(s);
 }
 
+
+void print(String s, int i){
+  Serial.print(s);
+  Serial.println(i);
+  btSerial.print(s);
+  btSerial.println(i);
+}
+
 /*
  * 
  *  _____  _     ___________  ___   _         _   _  ___  ______ _____  ___  ______ _      _____ _____ 
@@ -97,7 +105,8 @@ Pushbutton button(ZUMO_BUTTON);
 //Music music (3);
 
 //Eyes
-eyes eyesBaby; 
+Sonar eyesBaby (3); 
+
 
 
 //State! What the f are we doing right now? 
@@ -124,28 +133,26 @@ void setup()
   Serial.begin(9600);
   btSerial.begin(9600); // Open serial communication to Bluetooth unit  
   print("Booting...");
-
+  
+  eyesBaby.beginning();
+  
   //music.init();
-  reflectanceSensors.init();
+//  reflectanceSensors.init();
 
   //Setting default values
   state = 0;
   cliffhanger = 0;
   velocity = 200;
 
-  //setup buttSensor
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-
   //TODO: make a loop for config from processing
   
 
   print("Press button for calibration");
-  button.waitForButton();
+  //button.waitForButton();
 
 
   //Basic calibration for color sensors
-  delay(1000);
+  /*delay(1000);
   int i;
   for(i = 0; i < 80; i++)
   {
@@ -154,18 +161,18 @@ void setup()
     else
       motors.setSpeeds(200, -200);
       
-    reflectanceSensors.calibrate();
+    //reflectanceSensors.calibrate(); 
 
     // Since our counter runs to 80, the total delay will be
     // 80*20 = 1600 ms.
     delay(20);
   }
   motors.setSpeeds(0,0);
-
+*/
 
   
   print("\nPress button for fight");
-  button.waitForButton();
+  //button.waitForButton();
 
   print("Fight!");
 
@@ -186,25 +193,26 @@ void setup()
 void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
 
-  //buttSensor kode:
-  //checkBehind();
-
   //music.play();
   //print(music.getStuff());
 
   //Read sensor data
-  //0 = left, 5 = right
-  unsigned int sensors[6];
-  reflectanceSensors.readLine(sensors);
+//  unsigned int sensors[6];
+//  reflectanceSensors.readLine(sensors);
 
   //Update state based on sensor data
-  updateState(sensors);
-
-  print("state " + String(state));
+  //updateState(sensors);
+/*
+  if(cliffhanger % 15 == 0){
+    print("state " + String(state));  
+    
+  }*/
+  eyesBaby.search();
+  //print("cliffhanger : ", cliffhanger);
 
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
-  setMotorSpeeds();
+//  setMotorSpeeds();
   
   
   //Default delay

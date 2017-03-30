@@ -7,12 +7,18 @@
 
 #define SONAR_NUM 2 // Number of sensors
 
+
+
+
+
 class Sonar{
-  Servo myservo; //servo object
   
+  Servo myservo; //servo object
+    
   //int servoAngle = 0; // global variable to store the servo position
+
   long timeServo = 0;
-  byte servoDir = -1, servoAngle = 0;
+  byte servoDir = 1, servoAngle = 90;
 
   //Forward eye
   const int echoPin = A1;
@@ -36,41 +42,57 @@ class Sonar{
     NewPing(triggerPin, echoPin, maxDistance),
     NewPing(triggerPinB, echoPinB, maxDistanceB)
   };
+
+  int superPin;
   
  //Oppretter et sonar-objekt
   public:
-    void Sonar() {
+
+  boolean frontEye = false;
+  boolean backEye = false;
+  
+    Sonar(int pin) {
       //Du åpner Serial Monitor ved å trykke Ctrl + Shift + M 
+      
+      superPin = pin;    
+    }
+
+    void beginning(){
       Serial.begin(9600); //Her blir Serial monitor aktivert slik at Arduino kan skrive info til PCen
-      myservo.attach(9); // attaches the servo on pin 9
+      pinMode(superPin,OUTPUT);
+      myservo.attach(superPin); // attaches the servo on pin 9
     }
     
     
     void reads() {
-      
+
+      search();
       getDist(0);
       getDist(1);
-      //search();
+      
       
       if (teller == 0) {
-        boolean frontEye = someoneThere(0);
-        boolean backEye = someoneThere(1);
+        frontEye = someoneThere(0);
+        backEye = someoneThere(1);
       }
       
       teller++;
-      delay(10);
+      
     }
     
     void search() {  
-          if (millis() - timeServo > 1){
+          if (millis() - timeServo > 5){
             if(servoAngle >= 0 || servoAngle <= 179){
-              if(servoAngle == 0){
+              if(servoAngle <= 0){
                 servoDir = 1;
-              } else if (servoAngle == 179) {
+              } else if (servoAngle >= 179) {
                 servoDir = -1;
               }
               servoAngle += servoDir;
               myservo.write(servoAngle);
+              if(servoAngle % 10 == 0){
+                Serial.println("Servo angle : " + String(servoAngle));
+              }
               timeServo = millis();
             }
             
@@ -112,4 +134,6 @@ class Sonar{
        Serial.println(distance);
       return false;
     }
-}
+};
+
+
