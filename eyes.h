@@ -5,7 +5,7 @@
  
 #include <Arduino.h>
 
-#define SONAR_NUM 1 // Number of sensors
+#define SONAR_NUM 2 // Number of sensors
 
 class Sonar{
   Servo myservo; //servo object
@@ -13,24 +13,30 @@ class Sonar{
   //int servoAngle = 0; // global variable to store the servo position
   long timeServo = 0;
   byte servoDir = -1, servoAngle = 0;
-  
-  const int echoPin = 2;
-  const int triggerPin = 4;
+
+  //Forward eye
+  const int echoPin = A1;
+  const int triggerPin = A2;
   int teller = 0;
+
+  //Backwards eye
+  const int echoPinB = A3;
+  const int triggerPinB = A4;
+
   
   RunningMedian dists = RunningMedian(15);
   int distance;
   const int maxDistance = 100;
+  const int maxDistanceB = 6;
   uint8_t currentSensor = 0; // which sensor is active
   
   /* http://playground.arduino.cc/Code/NewPing */
   
   NewPing sonar[SONAR_NUM] = { // liste med sensorer
-    NewPing(triggerPin, echoPin, maxDistance)//,
-    //NewPing(triggerPin, echoPin, maxDistance),
-    //NewPing(triggerPin, echoPin, maxDistance),
-    //NewPing(triggerPin, echoPin, maxDistance) 
+    NewPing(triggerPin, echoPin, maxDistance),
+    NewPing(triggerPinB, echoPinB, maxDistanceB)
   };
+  
  //Oppretter et sonar-objekt
   public:
     void Sonar() {
@@ -43,10 +49,12 @@ class Sonar{
     void reads() {
       
       getDist(0);
+      getDist(1);
       //search();
       
       if (teller == 0) {
-        someoneThere(0);
+        boolean frontEye = someoneThere(0);
+        boolean backEye = someoneThere(1);
       }
       
       teller++;

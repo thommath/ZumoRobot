@@ -27,11 +27,13 @@
 #include <PLabBTSerial.h>
 
 
-#define trigPin PIN_A4
-#define echoPin PIN_A1
+//#define trigPin PIN_A4
+//#define echoPin PIN_A1 [slettes] flyttet
 
 
 //#include "imperial.h"
+
+#include "eyes.h"
 
 PLabBTSerial btSerial(txPin, rxPin);
 
@@ -93,6 +95,9 @@ Pushbutton button(ZUMO_BUTTON);
 
 //MUSIC
 //Music music (3);
+
+//Eyes
+eyes eyesBaby; 
 
 
 //State! What the f are we doing right now? 
@@ -182,7 +187,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
 
   //buttSensor kode:
-  checkBehind();
+  //checkBehind();
 
   //music.play();
   //print(music.getStuff());
@@ -239,8 +244,9 @@ void updateState(int *sensors){
     state = 3;
     cliffhanger = 0;
   }
-  //Check behind
-  else if(checkBehind() == true){
+  
+  else if(eyesBaby.frontEye){ 
+    //Checs the frontwards eyes
     state = 4;
     cliffhanger = 0;
   }
@@ -261,30 +267,7 @@ void setMotorSpeeds(){
   motors.setSpeeds(speeds[0], speeds[1]);
 }
 
-boolean checkBehind(){
-  float duration, distance;
-  digitalWrite(trigPin, LOW); 
-  delayMicroseconds(2);
- 
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  
-  duration = pulseIn(echoPin, HIGH);
-  distance = (duration / 2) * 0.0344;
-  
-  if (distance <= 6){
-    Serial.println("butt=true");
-    return true;
-  }
-  else {
-    //Serial.print("Distance = ");
-    //Serial.print(distance);
-    //Serial.println(" cm");
-    //Serial.println("butt=false");
-    return false;
-  }
-}
+
 /*
  *  
  *  _____   ___   _____ _____ _____ 
@@ -365,13 +348,22 @@ void case3(int *speeds){
     cliffhanger = 0;
   }
 }
-// Enemy behind, take evatise action
+// Enemy behind, take evasive action
 void case4(int *speeds){
+  if(cliffhanger < 100){
+    print("nå kjører case 4");
+    
+  }
+  
+}
+
+/*
+void case5(int *speeds)
   if(cliffhanger < 100){
     
     print("We're being fucked in our ASSES!");
     getTurnSpeeds(speeds, 0, 0, false);
-    delay(5000);
+    
     state = 0;
     
   }else{
@@ -379,5 +371,12 @@ void case4(int *speeds){
     cliffhanger = 0;
   }
 }
+*/
+
+
+
+
+
+
 
 
