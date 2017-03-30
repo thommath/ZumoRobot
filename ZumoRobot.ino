@@ -1,18 +1,18 @@
 #include <SpacebrewYun.h>
 
 /*
- * 
- *  _    _ _____ _     _____ ________  ___ _____ _ 
+ *
+ *  _    _ _____ _     _____ ________  ___ _____ _
  * | |  | |  ___| |   /  __ \  _  |  \/  ||  ___| |
  * | |  | | |__ | |   | /  \/ | | | .  . || |__ | |
  * | |/\| |  __|| |   | |   | | | | |\/| ||  __|| |
  * \  /\  / |___| |___| \__/\ \_/ / |  | || |___|_|
  *  \/  \/\____/\_____/\____/\___/\_|  |_/\____/(_)
- * 
- * 
- * We have one rule here: 
- * Do what you want except one thing, never use delay! 
- * 
+ *
+ *
+ * We have one rule here:
+ * Do what you want except one thing, never use delay!
+ *
  */
 
 #define txPin 6  // Tx pin on Bluetooth unit
@@ -26,31 +26,30 @@
 #include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
 
-#define trigPin PIN_A4
-#define echoPin PIN_A1
-
 
 #include "imperial.h"
+
+#include "eyes.h"
 
 PLabBTSerial btSerial(txPin, rxPin);
 
 
 
 /*
- * 
- *  _   _  _____ _     ______ ___________    ______ _   _ _   _ _____ _____ _____ _____ _   _  _____ 
+ *
+ *  _   _  _____ _     ______ ___________    ______ _   _ _   _ _____ _____ _____ _____ _   _  _____
  * | | | ||  ___| |    | ___ \  ___| ___ \   |  ___| | | | \ | /  __ \_   _|_   _|  _  | \ | |/  ___|
- * | |_| || |__ | |    | |_/ / |__ | |_/ /   | |_  | | | |  \| | /  \/ | |   | | | | | |  \| |\ `--. 
+ * | |_| || |__ | |    | |_/ / |__ | |_/ /   | |_  | | | |  \| | /  \/ | |   | | | | | |  \| |\ `--.
  * |  _  ||  __|| |    |  __/|  __||    /    |  _| | | | | . ` | |     | |   | | | | | | . ` | `--. \
  * | | | || |___| |____| |   | |___| |\ \    | |   | |_| | |\  | \__/\ | |  _| |_\ \_/ / |\  |/\__/ /
- * \_| |_/\____/\_____/\_|   \____/\_| \_|   \_|    \___/\_| \_/\____/ \_/  \___/ \___/\_| \_/\____/ 
- * 
- * 
+ * \_| |_/\____/\_____/\_|   \____/\_| \_|   \_|    \___/\_| \_/\____/ \_/  \___/ \___/\_| \_/\____/
+ *
+ *
  */
 
 float constantTurnTime = 1500;
 float pi = 3.141592653589793238;
- 
+
 //Sets motor speeds depending on turnRate and velocity
 void getTurnSpeeds(int *speeds, int turnRate, int velocity, boolean dir){
   if (dir){
@@ -74,17 +73,17 @@ void print(String s){
 }
 
 /*
- * 
- *  _____  _     ___________  ___   _         _   _  ___  ______ _____  ___  ______ _      _____ _____ 
+ *
+ *  _____  _     ___________  ___   _         _   _  ___  ______ _____  ___  ______ _      _____ _____
  * |  __ \| |   |  _  | ___ \/ _ \ | |       | | | |/ _ \ | ___ \_   _|/ _ \ | ___ \ |    |  ___/  ___|
- * | |  \/| |   | | | | |_/ / /_\ \| |       | | | / /_\ \| |_/ / | | / /_\ \| |_/ / |    | |__ \ `--. 
+ * | |  \/| |   | | | | |_/ / /_\ \| |       | | | / /_\ \| |_/ / | | / /_\ \| |_/ / |    | |__ \ `--.
  * | | __ | |   | | | | ___ \  _  || |       | | | |  _  ||    /  | | |  _  || ___ \ |    |  __| `--. \
  * | |_\ \| |___\ \_/ / |_/ / | | || |____   \ \_/ / | | || |\ \ _| |_| | | || |_/ / |____| |___/\__/ /
- *  \____/\_____/\___/\____/\_| |_/\_____/    \___/\_| |_/\_| \_|\___/\_| |_/\____/\_____/\____/\____/ 
- * 
- * 
+ *  \____/\_____/\___/\____/\_| |_/\_____/    \___/\_| |_/\_| \_|\___/\_| |_/\____/\_____/\____/\____/
+ *
+ *
  */
- 
+
 
 //Define sensors
 ZumoReflectanceSensorArray reflectanceSensors;
@@ -94,30 +93,33 @@ Pushbutton button(ZUMO_BUTTON);
 //MUSIC
 Music music (3);
 
+//Eyes
+eyes eyesBaby;
 
-//State! What the f are we doing right now? 
+
+//State! What the f are we doing right now?
 int state;
-//Cliffhanger, for how long have we been in this state? 
+//Cliffhanger, for how long have we been in this state?
 int cliffhanger;
-//How fast are we going? 
+//How fast are we going?
 int velocity;
 
 /*
- *  
- *  _____ _____ _____ _   _______ 
+ *
+ *  _____ _____ _____ _   _______
  * /  ___|  ___|_   _| | | | ___ \
  * \ `--.| |__   | | | | | | |_/ /
- *  `--. \  __|  | | | | | |  __/ 
- * /\__/ / |___  | | | |_| | |    
- * \____/\____/  \_/  \___/\_|   
- * 
- * 
+ *  `--. \  __|  | | | | | |  __/
+ * /\__/ / |___  | | | |_| | |
+ * \____/\____/  \_/  \___/\_|
+ *
+ *
  */
 
 void setup()
 {
   Serial.begin(9600);
-  btSerial.begin(9600); // Open serial communication to Bluetooth unit  
+  btSerial.begin(9600); // Open serial communication to Bluetooth unit
   print("Booting...");
   music.init();
   reflectanceSensors.init();
@@ -132,7 +134,7 @@ void setup()
   pinMode(echoPin, INPUT);
 
   //TODO: make a loop for config from processing
-  
+
 
   print("Press button for calibration");
   button.waitForButton();
@@ -147,7 +149,7 @@ void setup()
       motors.setSpeeds(-200, 200);
     else
       motors.setSpeeds(200, -200);
-      
+
     reflectanceSensors.calibrate();
 
     // Since our counter runs to 80, the total delay will be
@@ -157,7 +159,7 @@ void setup()
   motors.setSpeeds(0,0);
 
 
-  
+
   print("\nPress button for fight");
   button.waitForButton();
 
@@ -166,22 +168,21 @@ void setup()
 }
 
 /*
- *  
- *  _     _____  ___________ 
+ *
+ *  _     _____  ___________
  * | |   |  _  ||  _  | ___ \
  * | |   | | | || | | | |_/ /
- * | |   | | | || | | |  __/ 
- * | |___\ \_/ /\ \_/ / |    
- * \_____/\___/  \___/\_|                            
- * 
- * 
+ * | |   | | | || | | |  __/
+ * | |___\ \_/ /\ \_/ / |
+ * \_____/\___/  \___/\_|
+ *
+ *
  */
 
 void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
 
   //buttSensor kode:
-//  checkBehind();
 
   music.play();
   ///print(music.getStuff());
@@ -196,11 +197,11 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 
 //  print("state " + String(state));
 
-  
+
   //Set motor speeds based on the state and the state timer (cliffhanger)
   setMotorSpeeds();
-  
-  
+
+
   //Default delay
   delay(10);
   //Increment the state time counter
@@ -210,7 +211,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   int availableCount = btSerial.available();
   if (availableCount > 0) {
     char text[availableCount];
-    btSerial.read(text, availableCount); 
+    btSerial.read(text, availableCount);
     print(text);
 //    readCommand(text);
     String in = "";
@@ -225,29 +226,29 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
     constantTurnTime = in.toInt();
     print("Set constantTurnTime to " + String(constantTurnTime));
   }
-  
+
 }
 
 /*
- *  
- *  _____ _____ _   _ ___________ _____ _        ______ _   _ _   _ _____ _____ _____ _____ _   _  _____ 
+ *
+ *  _____ _____ _   _ ___________ _____ _        ______ _   _ _   _ _____ _____ _____ _____ _   _  _____
  * /  __ \  _  | \ | |_   _| ___ \  _  | |       |  ___| | | | \ | /  __ \_   _|_   _|  _  | \ | |/  ___|
- * | /  \/ | | |  \| | | | | |_/ / | | | |       | |_  | | | |  \| | /  \/ | |   | | | | | |  \| |\ `--. 
+ * | /  \/ | | |  \| | | | | |_/ / | | | |       | |_  | | | |  \| | /  \/ | |   | | | | | |  \| |\ `--.
  * | |   | | | | . ` | | | |    /| | | | |       |  _| | | | | . ` | |     | |   | | | | | | . ` | `--. \
  * | \__/\ \_/ / |\  | | | | |\ \\ \_/ / |____   | |   | |_| | |\  | \__/\ | |  _| |_\ \_/ / |\  |/\__/ /
- *  \____/\___/\_| \_/ \_/ \_| \_|\___/\_____/   \_|    \___/\_| \_/\____/ \_/  \___/ \___/\_| \_/\____/ 
- * 
- * 
+ *  \____/\___/\_| \_/ \_/ \_| \_|\___/\_____/   \_|    \___/\_| \_/\____/ \_/  \___/ \___/\_| \_/\____/
+ *
+ *
  */
 
 //Changes state based on sensor data
 void updateState(int *sensors){
   //Find state
-  
+
   if (sensors[0] < 800 && sensors[5] < 800) {
     //at the edge! go backwards!
     state = 1;
-    cliffhanger = 0; 
+    cliffhanger = 0;
   }
   else if (sensors[0] < 800 && state < 1) {
     //left side hit white, so turn right
@@ -259,11 +260,6 @@ void updateState(int *sensors){
     state = 3;
     cliffhanger = 0;
   }
-  //Check behind
-/*  else if(checkBehind() == true){
-    state = 4;
-    cliffhanger = 0;
-  }*/
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -282,56 +278,56 @@ void setMotorSpeeds(){
 }
 
 /*
- *  
- *  _____   ___   _____ _____ _____ 
+ *
+ *  _____   ___   _____ _____ _____
  * /  __ \ / _ \ /  ___|  ___/  ___|
- * | /  \// /_\ \\ `--.| |__ \ `--. 
+ * | /  \// /_\ \\ `--.| |__ \ `--.
  * | |    |  _  | `--. \  __| `--. \
  * | \__/\| | | |/\__/ / |___/\__/ /
- *  \____/\_| |_/\____/\____/\____/ 
- * 
- * 
+ *  \____/\_| |_/\____/\____/\____/
+ *
+ *
  */
 
 
 /*
  * HOW TO MAKE A NEW CASE:
- * 
- * first you make the function here: 
+ *
+ * first you make the function here:
 
 void caseX(int *speeds){
   if(cliffhanger < (time if you go striaight (usually 100-500) or getTurnTime(angle in rad, speed 0-500, how sharp turn 0-100 where 0 is straight and 100 is turn on the spot){
-  
+
     getTurnSpeed(speeds, how sharp you turn that is THE SAME AS ABOVE, speed that is THE SAME AS ABOVE, and true for right and false for left I think);
-  
+
   }else if(cliffhanger < the time + the new time){
-  
+
     getTurnSpeed(speeds, ...);
-  
+
   }else{
     state = nextState;
     cliffhanger = 0;
   }
 }
 
- * 
+ *
  */
- 
+
 //Booring
 void case0(int *speeds){
   getTurnSpeeds(speeds, 0, velocity, true);
 }
 
-//You have reached the end of the known world, here be monsters! 
+//You have reached the end of the known world, here be monsters!
 void case1(int *speeds){
   if(cliffhanger < 10){
-    
+
     getTurnSpeeds(speeds, 0, -velocity, true);
-  
+
   }else if(cliffhanger < 10 + getTurnTime(pi, velocity, 100)){
-  
+
     getTurnSpeeds(speeds, 100, velocity, true);
-  
+
   }else{
     state = 0;
     cliffhanger = 0;
@@ -341,9 +337,9 @@ void case1(int *speeds){
 //A fowl wind reeks from the west
 void case2(int *speeds){
   if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
-  
+
     getTurnSpeeds(speeds, 100, velocity, true);
-  
+
   }else{
     state = 0;
     cliffhanger = 0;
@@ -353,27 +349,35 @@ void case2(int *speeds){
 //A fowl wind reeks from the east
 void case3(int *speeds){
   if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
-  
+
     getTurnSpeeds(speeds, 100, velocity, false);
-  
+
   }else{
     state = 0;
     cliffhanger = 0;
   }
 }
-// Enemy behind, take evatise action
+// Enemy behind, take evasive action
 void case4(int *speeds){
   if(cliffhanger < 100){
-    
+    print("nå kjører case 4");
+
+  }
+
+}
+
+/*
+void case5(int *speeds)
+  if(cliffhanger < 100){
+
     print("We're being fucked in our ASSES!");
     getTurnSpeeds(speeds, 0, 0, false);
 //    delay(5000);
     state = 0;
-    
+
   }else{
     state = 0;
     cliffhanger = 0;
   }
 }
-
-
+*/
