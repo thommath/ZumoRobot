@@ -1,3 +1,4 @@
+
 /*
  *
  *  _    _ _____ _     _____ ________  ___ _____ _
@@ -47,7 +48,7 @@ PLabBTSerial btSerial(txPin, rxPin);
 
 
 //Define sensors
-ZumoReflectanceSensorArray reflectanceSensors;
+ZumoReflectanceSensorArray reflectanceSensors(QTR_NO_EMITTER_PIN);
 ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
@@ -194,7 +195,7 @@ void setup()
 void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
 
-  music.play();
+  //music.play();
   //print(music.getStuff());
 
 
@@ -370,13 +371,12 @@ void case3(int *speeds){
     cliffhanger = 0;
   }
 }
+
 // Enemy behind, take evasive action
 void case4(int *speeds){
   if(cliffhanger < 100){
     print("nå kjører case 4");
-
   }
-
 }
 
 /*
