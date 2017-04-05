@@ -28,7 +28,6 @@
 #include <SpacebrewYun.h>
 
 #include "imperial.h"
-
 #include "eyes.h"
 
 PLabBTSerial btSerial(txPin, rxPin);

@@ -1,4 +1,5 @@
-#include <NewPing.h>
+//#include <NewPing.h>
+#include <Ping.h>
 #include "RunningMedian.h"
 #include <math.h>
 #include <Servo.h>
@@ -38,9 +39,9 @@ class Sonar{
   
   /* http://playground.arduino.cc/Code/NewPing */
   
-  NewPing sonar[SONAR_NUM] = { // liste med sensorer
-    NewPing(triggerPin, echoPin, maxDistance),
-    NewPing(triggerPinB, echoPinB, maxDistanceB)
+  Ping sonar[SONAR_NUM] = { // liste med sensorer
+    Ping(triggerPin, echoPin, maxDistance),
+    Ping(triggerPinB, echoPinB, maxDistanceB)
   };
 
   int superPin;
@@ -111,8 +112,8 @@ class Sonar{
         teller = 0;
       }
       if ( teller % 1 == 0) {
-        unsigned int time = sonar[d].ping();
-        long x = sonar[d].convert_cm(time);
+        sonar[d].fire();
+        long x = sonar[d].inches();
         dists.add(x);
     
       }
