@@ -36,25 +36,25 @@
 #define MAX_COUNT 18
 
 class Music{
-    // MELODY and TIMING  =======================================
-    //  melody[] is an array of notes, accompanied by beats[],
+  //  MELODY and TIMING  =======================================
+  //  melody[] is an array of notes, accompanied by beats[],
     
 //    const int MAX_COUNT = 9; // Melody length, for looping.
     
-    int melody[MAX_COUNT];
-    int beats[MAX_COUNT];
-    
+  int melody[MAX_COUNT];
+  int beats[MAX_COUNT];
   
-    int soundPin;
-    long tempo = 700;  // Set overall tempo
-    long pauseTime = tempo/25;  // Set length of pause between notes
-    int frequency = 0;  
-    int beat = 0;
-    long duration  = 0;
-    
-    
-    int cliffhanger = 0;
-    int cliffhangerino = 0;
+
+  int soundPin;
+  long tempo = 700;  // Set overall tempo
+  long pauseTime = tempo/25;  // Set length of pause between notes
+  int frequency = 0;  
+  int beat = 0;
+  long duration  = 0;
+  
+  
+  int cliffhanger = 0;
+  int cliffhangerino = 0;
     
   public:
 

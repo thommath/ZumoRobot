@@ -49,12 +49,11 @@ class Sonar{
  //Oppretter et sonar-objekt
   public:
 
-  boolean frontEye = false;
-  boolean backEye = false;
+    boolean frontEye = false;
+    boolean backEye = false;
   
     Sonar(int pin) {
       //Du åpner Serial Monitor ved å trykke Ctrl + Shift + M 
-      
       superPin = pin;    
     }
 
@@ -66,11 +65,9 @@ class Sonar{
     
     
     void reads() {
-
       search();
       getDist(0);
       getDist(1);
-      
       
       if (teller == 0) {
         frontEye = someoneThere(0);
@@ -82,31 +79,27 @@ class Sonar{
     }
     
     void search() {  
-          if (millis() - timeServo > 5){
-            if(servoAngle >= 0 || servoAngle <= 179){
-              if(servoAngle <= 0){
-                servoDir = 1;
-              } else if (servoAngle >= 179) {
-                servoDir = -1;
-              }
-              servoAngle += servoDir;
-              myservo.write(servoAngle);
-              if(servoAngle % 10 == 0){
-                Serial.println("Servo angle : " + String(servoAngle));
-              }
-              timeServo = millis();
-            }
-            
+      if (millis() - timeServo > 5){
+        if(servoAngle >= 0 || servoAngle <= 179){
+          if(servoAngle <= 0){
+            servoDir = 1;
+          } else if (servoAngle >= 179) {
+            servoDir = -1;
+          }
+          servoAngle += servoDir;
+          myservo.write(servoAngle);
+          if(servoAngle % 10 == 0){
+            Serial.println("Servo angle : " + String(servoAngle));
+          }
+          timeServo = millis();
         }
-        
       }
-    
-    
+    }
     
     
     void getDist(uint8_t d){
       if (teller == 0) {
-          dists = RunningMedian(15);
+        dists = RunningMedian(15);
       } else if (teller >= 15*1) {        
         distance = dists.getMedian();
         teller = 0;
@@ -115,26 +108,19 @@ class Sonar{
         sonar[d].fire();
         long x = sonar[d].inches();
         dists.add(x);
-    
       }
-    
-      
     }
     
     boolean someoneThere(uint8_t d){
       int total = 0;
-    //  for (int i=0;i<5;i++){
-         total += distance;  
-    //  }
-       if(total>0){
-       Serial.println("true");
-       Serial.println(distance);
+      total += distance;  
+      if(total>0){
+        Serial.println("true");
+        Serial.println(distance);
         return true;
-       }
-       Serial.println("false");
-       Serial.println(distance);
+      }
+      Serial.println("false");
+      Serial.println(distance);
       return false;
     }
 };
-
-

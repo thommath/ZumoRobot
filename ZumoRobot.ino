@@ -33,52 +33,6 @@
 PLabBTSerial btSerial(txPin, rxPin);
 
 
-
-/*
- *
- *  _   _  _____ _     ______ ___________    ______ _   _ _   _ _____ _____ _____ _____ _   _  _____
- * | | | ||  ___| |    | ___ \  ___| ___ \   |  ___| | | | \ | /  __ \_   _|_   _|  _  | \ | |/  ___|
- * | |_| || |__ | |    | |_/ / |__ | |_/ /   | |_  | | | |  \| | /  \/ | |   | | | | | |  \| |\ `--.
- * |  _  ||  __|| |    |  __/|  __||    /    |  _| | | | | . ` | |     | |   | | | | | | . ` | `--. \
- * | | | || |___| |____| |   | |___| |\ \    | |   | |_| | |\  | \__/\ | |  _| |_\ \_/ / |\  |/\__/ /
- * \_| |_/\____/\_____/\_|   \____/\_| \_|   \_|    \___/\_| \_/\____/ \_/  \___/ \___/\_| \_/\____/
- *
- *
- */
-
-float constantTurnTime = 1500;
-float pi = 3.141592653589793238;
-
-//Sets motor speeds depending on turnRate and velocity
-void getTurnSpeeds(int *speeds, int turnRate, int velocity, boolean dir){
-  if (dir){
-    speeds[1] = int(((-turnRate+50)/50.0)*velocity);
-    speeds[0] = velocity;
-    return;
-  }
-  speeds[0] = int(((-turnRate+50)/50.0)*velocity);
-  speeds[1] = velocity;
-}
-
-//Returns how long you need to turn for to get the angle you want depending on the turnRate, maxSpeed and angle
-float getTurnTime(int angle, int maxSpeed, float turnRate){
-  return angle*constantTurnTime/(turnRate*maxSpeed/500.0);
-}
-
-
-void print(String s){
-  Serial.println(s);
-  btSerial.println(s);
-}
-
-
-void print(String s, int i){
-  Serial.print(s);
-  Serial.println(i);
-  btSerial.print(s);
-  btSerial.println(i);
-}
-
 /*
  *
  *  _____  _     ___________  ___   _         _   _  ___  ______ _____  ___  ______ _      _____ _____
@@ -113,6 +67,73 @@ int cliffhanger;
 //How fast are we going?
 int velocity;
 
+
+/*
+ *
+ *  _   _  _____ _     ______ ___________    ______ _   _ _   _ _____ _____ _____ _____ _   _  _____
+ * | | | ||  ___| |    | ___ \  ___| ___ \   |  ___| | | | \ | /  __ \_   _|_   _|  _  | \ | |/  ___|
+ * | |_| || |__ | |    | |_/ / |__ | |_/ /   | |_  | | | |  \| | /  \/ | |   | | | | | |  \| |\ `--.
+ * |  _  ||  __|| |    |  __/|  __||    /    |  _| | | | | . ` | |     | |   | | | | | | . ` | `--. \
+ * | | | || |___| |____| |   | |___| |\ \    | |   | |_| | |\  | \__/\ | |  _| |_\ \_/ / |\  |/\__/ /
+ * \_| |_/\____/\_____/\_|   \____/\_| \_|   \_|    \___/\_| \_/\____/ \_/  \___/ \___/\_| \_/\____/
+ *
+ *
+ */
+
+float constantTurnTime = 1500;
+float pi = 3.141592653589793238;
+
+//Sets motor speeds depending on turnRate and velocity
+void getTurnSpeeds(int *speeds, int turnRate, int velocity, boolean dir){
+  if (dir){
+    speeds[1] = int(((-turnRate+50)/50.0)*velocity);
+    speeds[0] = velocity;
+    return;
+  }
+  speeds[0] = int(((-turnRate+50)/50.0)*velocity);
+  speeds[1] = velocity;
+}
+
+//Returns how long you need to turn for to get the angle you want depending on the turnRate, maxSpeed and angle
+float getTurnTime(int angle, int maxSpeed, float turnRate){
+  return angle*constantTurnTime/(turnRate*maxSpeed/500.0);
+}
+
+
+void calibrate(){
+  //Basic calibration for color sensors
+  delay(1000);
+  int i;
+  for(i = 0; i < 80; i++){
+    if ((i > 10 && i <= 30) || (i > 50 && i <= 70))
+      motors.setSpeeds(-200, 200);
+    else
+      motors.setSpeeds(200, -200);
+
+
+    reflectanceSensors.calibrate(); 
+
+    // Since our counter runs to 80, the total delay will be
+    // 80*20 = 1600 ms.
+    delay(20);
+  }
+  motors.setSpeeds(0,0);
+}
+
+
+void print(String s){
+  Serial.println(s);
+  btSerial.println(s);
+}
+
+
+void print(String s, int i){
+  Serial.print(s);
+  Serial.println(i);
+  btSerial.print(s);
+  btSerial.println(i);
+}
+
 /*
  *
  *  _____ _____ _____ _   _______
@@ -143,36 +164,16 @@ void setup()
   cliffhanger = 0;
   velocity = 200;
 
-  //TODO: make a loop for config from processing
-
 
   print("Press button for calibration");
   //button.waitForButton();
-
-
-  //Basic calibration for color sensors
-  delay(1000);
-  int i;
-  for(i = 0; i < 80; i++)
-  {
-    if ((i > 10 && i <= 30) || (i > 50 && i <= 70))
-      motors.setSpeeds(-200, 200);
-    else
-      motors.setSpeeds(200, -200);
-
-
-    reflectanceSensors.calibrate(); 
-
-    // Since our counter runs to 80, the total delay will be
-    // 80*20 = 1600 ms.
-    delay(20);
-  }
-  motors.setSpeeds(0,0);
-
+  calibrate();
 
 
   print("\nPress button for fight");
   //button.waitForButton();
+
+  //TODO wait for go signal from phone
 
   print("Fight!");
 
@@ -200,28 +201,22 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   //Read sensor data
   unsigned int sensors[6];
   reflectanceSensors.readLine(sensors);
-
-  //Update state based on sensor data
-
-  updateState(sensors);
-/*
-  if(cliffhanger % 15 == 0){
-    print("state " + String(state));  
-    
-  }*/
   eyesBaby.reads();
-  //print("cliffhanger : ", cliffhanger);
-
-
+  
+  //Update state based on sensor data
+  updateState(sensors);
+  
   //Set motor speeds based on the state and the state timer (cliffhanger)
-
   setMotorSpeeds();
 
+  
+  
   //Default delay
   delay(10);
   //Increment the state time counter
   cliffhanger++;
 
+  //TODO? Maybe do this in setup instead?
   btRecieve();
 }
 
