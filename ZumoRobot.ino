@@ -1,5 +1,3 @@
-#include <SpacebrewYun.h>
-
 /*
  *
  *  _    _ _____ _     _____ ________  ___ _____ _
@@ -17,6 +15,8 @@
 
 #define txPin 6  // Tx pin on Bluetooth unit
 #define rxPin 2  // Rx pin on Bluetooth unit
+#define musicPin A5
+#define eyesPin 3
 
 
 #include <QTRSensors.h>
@@ -25,7 +25,7 @@
 #include <Pushbutton.h>
 #include <SoftwareSerial.h>
 #include <PLabBTSerial.h>
-
+#include <SpacebrewYun.h>
 
 #include "imperial.h"
 
@@ -99,10 +99,10 @@ ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
 //MUSIC
-Music music (A5);
+Music music (musicPin);
 
 //Eyes
-Sonar eyesBaby (3); 
+Sonar eyesBaby (eyesPin); 
 
 
 
@@ -223,6 +223,10 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   //Increment the state time counter
   cliffhanger++;
 
+  btRecieve();
+}
+
+void btRecieve(){
   //Bluetooth recieve
   int availableCount = btSerial.available();
   if (availableCount > 0) {
@@ -242,7 +246,6 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
     constantTurnTime = in.toInt();
     print("Set constantTurnTime to " + String(constantTurnTime));
   }
-
 }
 
 /*
@@ -258,7 +261,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
  */
 
 //Changes state based on sensor data
-void updateState(int *sensors){
+void updateState(unsigned int *sensors){
   //Find state
 
   if (sensors[0] < 800 && sensors[5] < 800) {
@@ -280,7 +283,7 @@ void updateState(int *sensors){
 
 //Sets motor speeds based on state and the state time (cliffhanger)
 void setMotorSpeeds(){
-  unsigned int speeds[2];
+  int speeds[2];
 
   switch(state){
    case 0: case0(speeds); break;
