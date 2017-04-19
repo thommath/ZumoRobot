@@ -16,8 +16,8 @@
 
 #define txPin 6  // Tx pin on Bluetooth unit
 #define rxPin 2  // Rx pin on Bluetooth unit
-#define musicPin A5
-#define eyesPin 3
+//#define musicPin A5
+#define servoPin 3
 
 
 #include <QTRSensors.h>
@@ -53,18 +53,18 @@ ZumoMotors motors;
 Pushbutton button(ZUMO_BUTTON);
 
 //MUSIC
-Music music (musicPin);
+//Music music (musicPin);
 
 //Eyes
-Sonar eyesBaby (eyesPin); 
+Sonar eyesBaby (servoPin); 
 
 
 
 
 //State! What the f are we doing right now?
 int state;
-//Cliffhanger, for how long have we been in this state?
-int cliffhanger;
+//When did we change our state last time?
+long timeall = 0;
 //How fast are we going?
 int velocity;
 
@@ -121,6 +121,64 @@ void calibrate(){
   motors.setSpeeds(0,0);
 }
 
+/*
+ * 
+ * Bluetooth
+ * 
+ */
+
+
+void waitForStart(){
+  String message = "";
+  while(!message.equals("Start")){
+    trySetSettings();
+    delay(100);
+  }
+}
+
+
+void trySetSettings(){
+  trySetSettings(btRecieve());
+}
+
+void trySetSettings(String message){
+  if(!message.equals("")){
+    setSettings(message);
+  }
+}
+
+
+String btRecieve(){
+  int availableCount = btSerial.available();
+  //Bluetooth recieve
+  if (availableCount > 0) {
+    char text[availableCount];
+    btSerial.read(text, availableCount);
+    return String(text);
+  }
+  return "";
+}
+
+
+void setSettings(String text){
+  String temp = "";
+  for(int n = 0; n < text.length(); n++){
+    if(text[n] == ' '){
+      velocity = temp.toInt();
+      print("Set velocity to " + String(velocity) + " " + temp);
+      temp = "";
+    }
+    temp += text[n];
+  }
+  constantTurnTime = temp.toInt();
+  print("Set constantTurnTime to " + String(constantTurnTime));
+}
+
+/*
+ * 
+ * Print functions
+ * 
+ */
 
 void print(String s){
   Serial.println(s);
@@ -156,15 +214,16 @@ void setup()
   
   eyesBaby.beginning();
 
-  music.init();
+//  music.init();
   reflectanceSensors.init();
 
 
   //Setting default values
   state = 0;
-  cliffhanger = 0;
   velocity = 200;
-
+  constantTurnTime = 3500;
+  
+  
 
   print("Press button for calibration");
   //button.waitForButton();
@@ -175,6 +234,7 @@ void setup()
   //button.waitForButton();
 
   //TODO wait for go signal from phone
+  //waitForStart();
 
   print("Fight!");
 
@@ -194,7 +254,7 @@ void setup()
 
 void loop()   // Draw a triangle. 45, 90, 45 degrees...
 {
-
+ 
   //music.play();
   //print(music.getStuff());
 
@@ -209,39 +269,12 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   
   //Set motor speeds based on the state and the state timer (cliffhanger)
   setMotorSpeeds();
-
   
   
-  //Default delay
-  delay(10);
-  //Increment the state time counter
-  cliffhanger++;
-
   //TODO? Maybe do this in setup instead?
-  btRecieve();
+  trySetSettings();
 }
 
-void btRecieve(){
-  //Bluetooth recieve
-  int availableCount = btSerial.available();
-  if (availableCount > 0) {
-    char text[availableCount];
-    btSerial.read(text, availableCount);
-    print(text);
-//    readCommand(text);
-    String in = "";
-    for(int n = 0; n < availableCount; n++){
-      if(text[n] == ' '){
-        velocity = in.toInt();
-        print("Set velocity to " + String(velocity) + " " + in);
-        in = "";
-      }
-      in += text[n];
-    }
-    constantTurnTime = in.toInt();
-    print("Set constantTurnTime to " + String(constantTurnTime));
-  }
-}
 
 /*
  *
@@ -257,36 +290,54 @@ void btRecieve(){
 
 //Changes state based on sensor data
 void updateState(unsigned int *sensors){
+  print(String(sensors[0]) + " " + 
+        String(sensors[1]) + " " + 
+        String(sensors[2]) + " " + 
+        String(sensors[3]) + " " + 
+        String(sensors[4]) + " " + 
+        String(sensors[5])); 
   //Find state
-
   if (sensors[0] < 800 && sensors[5] < 800) {
     //at the edge! go backwards!
     state = 1;
-    cliffhanger = 0;
+    timeall = millis();
+    print("1");
   }
   else if (sensors[0] < 800 && state < 1) {
     //left side hit white, so turn right
     state = 2;
-    cliffhanger = 0;
+    timeall = millis();
+    print("2");
   }
   else if (sensors[5] < 800 && state < 1) {
     //right side hit white, so turn left
     state = 3;
-    cliffhanger = 0;
+    timeall = millis();
+    print("3");
+  }
+  
+  if(eyesBaby.frontEye && state == 0){
+    state = 4;
+    timeall = millis();
+    print("4");
+  }else if(!eyesBaby.frontEye && state == 4){
+    state = 0;
   }
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
 void setMotorSpeeds(){
+//  print(String(state) + " " + String(cliffhanger));
   int speeds[2];
 
   switch(state){
-   case 0: case0(speeds); break;
+   case 0: case5(speeds); break;
    case 1: case1(speeds); break;
    case 2: case2(speeds); break;
    case 3: case3(speeds); break;
    case 4: case4(speeds); break;
   }
+  
   //Set motor speed
   motors.setSpeeds(speeds[0], speeds[1]);
 }
@@ -334,63 +385,50 @@ void case0(int *speeds){
 
 //You have reached the end of the known world, here be monsters!
 void case1(int *speeds){
-  if(cliffhanger < 10){
+  if(millis() - timeall < 200){
 
     getTurnSpeeds(speeds, 0, -velocity, true);
 
-  }else if(cliffhanger < 10 + getTurnTime(pi, velocity, 100)){
+  }else if(millis() - timeall < 200 + getTurnTime(pi, velocity, 100)){
 
     getTurnSpeeds(speeds, 100, velocity, true);
 
   }else{
     state = 0;
-    cliffhanger = 0;
   }
 }
 
 //A fowl wind reeks from the west
 void case2(int *speeds){
-  if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
+  if(millis() - timeall < getTurnTime(2*pi/3, velocity, 70)){
 
-    getTurnSpeeds(speeds, 100, velocity, true);
+    getTurnSpeeds(speeds, 70, -velocity, true);
 
   }else{
     state = 0;
-    cliffhanger = 0;
   }
 }
 
 //A fowl wind reeks from the east
 void case3(int *speeds){
-  if(cliffhanger < getTurnTime(2*pi/3, velocity, 70)){
+  if(millis() - timeall < getTurnTime(2*pi/3, velocity, 70)){
 
-    getTurnSpeeds(speeds, 100, velocity, false);
+    getTurnSpeeds(speeds, 70, -velocity, false);
 
   }else{
     state = 0;
-    cliffhanger = 0;
   }
 }
 
-// Enemy behind, take evasive action
+// Enemy in sight, take action
 void case4(int *speeds){
-  if(cliffhanger < 100){
-    print("nå kjører case 4");
-  }
+  getTurnSpeeds(speeds, 5, 400, false);
 }
 
-/*
-void case5(int *speeds)
-  if(cliffhanger < 100){
-
-    print("We're being fucked in our ASSES!");
-    getTurnSpeeds(speeds, 0, 0, false);
-//    delay(5000);
-    state = 0;
-
-  }else{
-    state = 0;
-    cliffhanger = 0;
-  }
+//searching for enemy
+void case5(int *speeds){
+  getTurnSpeeds(speeds, 100, 100, true);
 }
-*/
+
+
+

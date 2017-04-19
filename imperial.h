@@ -117,7 +117,7 @@ class Music{
         frequency = melody[cliffhanger];
         beat = beats[cliffhanger];
         duration = tempo / beat; // Set up timing
-        tone(soundPin, frequency, duration);
+//        NewTone(soundPin, frequency);
       }
       
       cliffhangerino++;
