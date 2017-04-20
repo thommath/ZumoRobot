@@ -31,7 +31,7 @@
 #include "imperial.h"
 #include "eyes.h"
 
-PLabBTSerial btSerial(txPin, rxPin);
+//PLabBTSerial btSerial(txPin, rxPin);
 
 
 /*
@@ -127,7 +127,7 @@ void calibrate(){
  * 
  */
 
-
+/*
 void waitForStart(){
   String message = "";
   while(!message.equals("Start")){
@@ -172,7 +172,7 @@ void setSettings(String text){
   }
   constantTurnTime = temp.toInt();
   print("Set constantTurnTime to " + String(constantTurnTime));
-}
+}*/
 
 /*
  * 
@@ -182,15 +182,15 @@ void setSettings(String text){
 
 void print(String s){
   Serial.println(s);
-  btSerial.println(s);
+//  btSerial.println(s);
 }
 
 
 void print(String s, int i){
   Serial.print(s);
   Serial.println(i);
-  btSerial.print(s);
-  btSerial.println(i);
+//  btSerial.print(s);
+//  btSerial.println(i);
 }
 
 /*
@@ -208,7 +208,7 @@ void print(String s, int i){
 void setup()
 {
   Serial.begin(9600);
-  btSerial.begin(9600); // Open serial communication to Bluetooth unit
+//  btSerial.begin(9600); // Open serial communication to Bluetooth unit
   print("Booting...");
 
   
@@ -220,28 +220,29 @@ void setup()
 
   //Setting default values
   state = 0;
-  velocity = 200;
-  constantTurnTime = 3500;
+  velocity = 250;
+  constantTurnTime = 3700;
   
   
 
   print("Press button for calibration");
-  //button.waitForButton();
+  button.waitForButton();
   calibrate();
 
 
   print("\nPress button for fight");
-  //button.waitForButton();
+  button.waitForButton();
 
   //TODO wait for go signal from phone
-  //waitForStart();
+//  waitForStart();
 
   print("Fight!");
 
 }
 
-/*
- *
+/* 
+ *  
+ *  *
  *  _     _____  ___________
  * | |   |  _  ||  _  | ___ \
  * | |   | | | || | | | |_/ /
@@ -272,7 +273,7 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
   
   
   //TODO? Maybe do this in setup instead?
-  trySetSettings();
+//  trySetSettings();
 }
 
 
@@ -290,12 +291,12 @@ void loop()   // Draw a triangle. 45, 90, 45 degrees...
 
 //Changes state based on sensor data
 void updateState(unsigned int *sensors){
-  print(String(sensors[0]) + " " + 
+/*  print(String(sensors[0]) + " " + 
         String(sensors[1]) + " " + 
         String(sensors[2]) + " " + 
         String(sensors[3]) + " " + 
         String(sensors[4]) + " " + 
-        String(sensors[5])); 
+        String(sensors[5])); */
   //Find state
   if (sensors[0] < 800 && sensors[5] < 800) {
     //at the edge! go backwards!
@@ -305,24 +306,31 @@ void updateState(unsigned int *sensors){
   }
   else if (sensors[0] < 800 && state < 1) {
     //left side hit white, so turn right
-    state = 2;
+    state = 3;
     timeall = millis();
     print("2");
   }
   else if (sensors[5] < 800 && state < 1) {
     //right side hit white, so turn left
-    state = 3;
+    state = 2;
     timeall = millis();
     print("3");
   }
+  else if(eyesBaby.rightEye && state == 0){
+    state = 6;
+    timeall = millis();
+    print("6");
+  }
   
-  if(eyesBaby.frontEye && state == 0){
+  if(eyesBaby.frontEye && (state == 0 || state == 6)){
     state = 4;
     timeall = millis();
     print("4");
   }else if(!eyesBaby.frontEye && state == 4){
     state = 0;
   }
+
+  
 }
 
 //Sets motor speeds based on state and the state time (cliffhanger)
@@ -331,11 +339,13 @@ void setMotorSpeeds(){
   int speeds[2];
 
   switch(state){
-   case 0: case5(speeds); break;
+   case 0: case0(speeds); break;
    case 1: case1(speeds); break;
    case 2: case2(speeds); break;
    case 3: case3(speeds); break;
    case 4: case4(speeds); break;
+   case 5: case5(speeds); break;
+   case 6: case6(speeds); break;
   }
   
   //Set motor speed
@@ -385,11 +395,11 @@ void case0(int *speeds){
 
 //You have reached the end of the known world, here be monsters!
 void case1(int *speeds){
-  if(millis() - timeall < 200){
+  if(millis() - timeall < 150){
 
     getTurnSpeeds(speeds, 0, -velocity, true);
 
-  }else if(millis() - timeall < 200 + getTurnTime(pi, velocity, 100)){
+  }else if(millis() - timeall < 150 + getTurnTime(2*pi, velocity, 100)){
 
     getTurnSpeeds(speeds, 100, velocity, true);
 
@@ -402,7 +412,7 @@ void case1(int *speeds){
 void case2(int *speeds){
   if(millis() - timeall < getTurnTime(2*pi/3, velocity, 70)){
 
-    getTurnSpeeds(speeds, 70, -velocity, true);
+    getTurnSpeeds(speeds, 80, -velocity, false);
 
   }else{
     state = 0;
@@ -411,9 +421,16 @@ void case2(int *speeds){
 
 //A fowl wind reeks from the east
 void case3(int *speeds){
-  if(millis() - timeall < getTurnTime(2*pi/3, velocity, 70)){
+/*  if(millis() - timeall < getTurnTime(2*pi/3, velocity, 70)){
 
     getTurnSpeeds(speeds, 70, -velocity, false);
+
+  }else{
+    state = 0;
+  }*/
+  if(millis() - timeall < getTurnTime(2*pi/3, velocity, 70)){
+
+    getTurnSpeeds(speeds, 80, -velocity, false);
 
   }else{
     state = 0;
@@ -422,13 +439,44 @@ void case3(int *speeds){
 
 // Enemy in sight, take action
 void case4(int *speeds){
-  getTurnSpeeds(speeds, 5, 400, false);
+  if(millis() - timeall < 200){
+
+    getTurnSpeeds(speeds, 10, 600, false);
+
+  }else if(millis() - timeall < 400){
+
+    getTurnSpeeds(speeds, 10, 600, true);
+
+  }else{
+    timeall = millis();
+  }
+  
 }
 
 //searching for enemy
 void case5(int *speeds){
-  getTurnSpeeds(speeds, 100, 100, true);
+  getTurnSpeeds(speeds, 100, 100, false);
 }
+
+//Enemy at the right
+void case6(int *speeds){
+  if(millis() - timeall < 300){
+    
+    getTurnSpeeds(speeds, 40, 250, true);
+  
+  }else if(millis() - timeall < 300 + getTurnTime(3*pi, velocity, 70)){
+  
+    getTurnSpeeds(speeds, 90, 250, true);
+  
+  }else if(millis() - timeall < 300 + 2*getTurnTime(3*pi, velocity, 70)){
+  
+    getTurnSpeeds(speeds, 90, 250, false);
+  
+  }else{
+    state = 0;
+  }
+}
+
 
 
 

@@ -4,9 +4,7 @@
  
 #include <Arduino.h>
 
-#define SONAR_NUM 1 // Number of sensors
-
-
+#define SONAR_NUM 2 // Number of sensors
 
 
 
@@ -22,18 +20,21 @@ class Sonar{
   //Forward eye
   const int echoPin = A5;
   const int triggerPin = A1;
-  int teller = 0;
+  const int echoPin2 = 6;
+  const int triggerPin2 = 2;
+  int teller[2] = {0, 0};
 
   
-  RunningMedian dists = RunningMedian(15);
-  int distance;
+  RunningMedian dists[2] = {RunningMedian(15), RunningMedian(15)};
+  int distance[2];
   const int maxDistance = 100;
   uint8_t currentSensor = 0; // which sensor is active
   
   /* http://playground.arduino.cc/Code/NewPing */
   
   NewPing sonar[SONAR_NUM] = { // liste med sensorer
-    NewPing(triggerPin, echoPin, maxDistance)
+    NewPing(triggerPin, echoPin, maxDistance),
+    NewPing(triggerPin2, echoPin2, maxDistance)
   };
 
   int superPin;
@@ -41,7 +42,9 @@ class Sonar{
  //Oppretter et sonar-objekt
   public:
 
-  boolean frontEye = false; 
+  boolean frontEye = false;
+  boolean rightEye = false;
+   
     Sonar(int pin) {
       //Du åpner Serial Monitor ved å trykke Ctrl + Shift + M 
       
@@ -59,12 +62,17 @@ class Sonar{
 
    //   search();
       getDist(0);
-      
-      if (teller == 0) {
+      getDist(1);
+   
+      if (teller[0] == 0) {
         frontEye = someoneThere(0);
       }
+      if (teller[1] == 0) {
+        rightEye = someoneThere(1);
+      }
       
-      teller++;
+      teller[0]++;
+      teller[1]++;
       
     }
 /*    
@@ -90,33 +98,35 @@ class Sonar{
     
 
    */
+
+   int ant[2] = {1, 1};
     
     
     void getDist(uint8_t d){
-      if (teller == 0) {
-          dists = RunningMedian(15);
-      } else if (teller >= 15*1) {        
-        distance = dists.getMedian();
-        teller = 0;
+      if (teller[d] == 0) {
+          dists[d] = RunningMedian(ant[d]);
+      } else if (teller[d] >= ant[d]*1) {        
+        distance[d] = dists[d].getMedian();
+        teller[d] = 0;
       }
-      if ( teller % 1 == 0) {
+      if ( teller[d] % 1 == 0) {
         unsigned int time = sonar[d].ping();
         long x = sonar[d].convert_cm(time);
-        dists.add(x);
+        dists[d].add(x);
       }
     }
     
     boolean someoneThere(uint8_t d){
       int total = 0;
     //  for (int i=0;i<5;i++){
-         total += distance;  
+         total += distance[d];  
     //  }
        if(total>0 && total<70){
-         Serial.println("true");
+         Serial.println("true" + String(d));
 //         Serial.println(distance);
         return true;
        }
-       Serial.println("false");
+       Serial.println("false" + String(d));
 //       Serial.println(distance);
       return false;
     }
